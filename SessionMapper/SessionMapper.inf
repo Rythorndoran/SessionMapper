@@ -1,0 +1,77 @@
+;
+; SessionMapper.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=SessionMapper.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+SessionMapper_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+SessionMapper.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%SessionMapper.DeviceDesc%=SessionMapper_Device, Root\SessionMapper ; TODO: edit hw-id
+
+[SessionMapper_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+SessionMapper.sys
+
+;-------------- Service installation
+[SessionMapper_Device.NT.Services]
+AddService = SessionMapper,%SPSVCINST_ASSOCSERVICE%, SessionMapper_Service_Inst
+
+; -------------- SessionMapper driver install sections
+[SessionMapper_Service_Inst]
+DisplayName    = %SessionMapper.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\SessionMapper.sys
+
+;
+;--- SessionMapper_Device Coinstaller installation ------
+;
+
+[SessionMapper_Device.NT.CoInstallers]
+AddReg=SessionMapper_Device_CoInstaller_AddReg
+CopyFiles=SessionMapper_Device_CoInstaller_CopyFiles
+
+[SessionMapper_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[SessionMapper_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[SessionMapper_Device.NT.Wdf]
+KmdfService =  SessionMapper, SessionMapper_wdfsect
+[SessionMapper_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "SessionMapper Installation Disk"
+SessionMapper.DeviceDesc = "SessionMapper Device"
+SessionMapper.SVCDESC = "SessionMapper Service"
